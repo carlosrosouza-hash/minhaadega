@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vinhos e Amigos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --wine-deep: #3D0C11; --wine-mid: #7B1D2A; --wine-light: #C4485A;
+  --wine-rose: #EDB8BF; --wine-gold: #C9A84C; --wine-gold-light: #E2C97E;
+  --wine-cream: #F9F3E8; --wine-dark-text: #1A0508; --wine-muted: #C09898;
+}
+body { font-family:'Jost',sans-serif; background:var(--wine-deep); min-height:100vh; color:var(--wine-cream); overflow-x:hidden; }
+body::before { content:''; position:fixed; top:-50%; left:-20%; width:140%; height:200%; background:radial-gradient(ellipse at 30% 20%,rgba(123,29,42,.7) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(201,168,76,.12) 0%,transparent 40%); pointer-events:none; z-index:0; }
+#wine-app { position:relative; z-index:1; }
+.app-content { position:relative; z-index:1; max-width:500px; margin:0 auto; padding:0 20px 60px; }
+.app-header { text-align:center; padding:28px 0 16px; border-bottom:1px solid rgba(201,168,76,.35); margin-bottom:24px; }
+.app-logo { width:80px; height:80px; border-radius:50%; object-fit:cover; margin-bottom:10px; border:2px solid rgba(201,168,76,.5); box-shadow:0 0 24px rgba(201,168,76,.25); }
+.app-title { font-family:'Cormorant Garamond',serif; font-size:32px; font-weight:300; color:var(--wine-gold); letter-spacing:4px; text-transform:uppercase; }
+.app-subtitle { font-size:12px; font-weight:300; color:var(--wine-rose); letter-spacing:4px; text-transform:uppercase; margin-top:4px; }
+.nav-tabs { display:flex; gap:8px; margin-top:14px; justify-content:center; }
+.nav-tab { background:transparent; border:1px solid rgba(201,168,76,.3); border-radius:20px; padding:7px 20px; font-family:'Jost',sans-serif; font-size:12px; font-weight:400; letter-spacing:1.5px; text-transform:uppercase; color:rgba(249,243,232,.6); cursor:pointer; transition:all .2s; }
+.nav-tab.active { background:rgba(201,168,76,.2); border-color:var(--wine-gold); color:var(--wine-gold); }
+.progress-bar { display:flex; gap:4px; margin-bottom:10px; }
+.progress-step { flex:1; height:3px; background:rgba(255,255,255,.12); border-radius:2px; transition:background .4s; }
+.progress-step.done { background:var(--wine-gold); }
+.progress-step.active { background:var(--wine-light); }
+.step-label { font-size:12px; font-weight:400; letter-spacing:2px; text-transform:uppercase; color:var(--wine-rose); text-align:center; margin-bottom:22px; }
+.card { background:rgba(249,243,232,.08); border:1px solid rgba(201,168,76,.3); border-radius:14px; padding:26px 22px; margin-bottom:16px; backdrop-filter:blur(12px); animation:fadeIn .35s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+.card-inner { position:relative; }
+.card-title { font-family:'Cormorant Garamond',serif; font-size:26px; font-weight:400; color:var(--wine-gold); margin-bottom:8px; line-height:1.3; }
+.card-number { font-family:'Cormorant Garamond',serif; font-size:70px; font-weight:300; color:rgba(201,168,76,.12); position:absolute; top:0; right:0; line-height:1; pointer-events:none; }
+.card-description { font-size:15px; font-weight:300; color:rgba(249,243,232,.85); line-height:1.75; margin-bottom:20px; }
+.info-box { background:rgba(201,168,76,.1); border-left:3px solid var(--wine-gold); border-radius:0 10px 10px 0; padding:14px 18px; margin-bottom:22px; }
+.info-box p { font-size:14px; font-weight:300; color:rgba(249,243,232,.9); line-height:1.75; }
+.info-box strong { color:var(--wine-gold-light); font-weight:500; }
+.step-photo { width:100%; height:160px; object-fit:cover; border-radius:10px; margin-bottom:20px; opacity:.85; border:1px solid rgba(201,168,76,.2); }
+label.field-label { display:block; font-size:12px; font-weight:500; letter-spacing:2px; text-transform:uppercase; color:var(--wine-rose); margin-bottom:8px; }
+.field-group { margin-bottom:18px; }
+input[type="text"],input[type="number"],textarea,select { width:100%; background:rgba(249,243,232,.09); border:1px solid rgba(201,168,76,.35); border-radius:10px; padding:13px 16px; font-family:'Jost',sans-serif; font-size:16px; font-weight:300; color:var(--wine-cream); outline:none; transition:border-color .25s,background .25s; appearance:none; -webkit-appearance:none; }
+select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23C9A84C' d='M1 1l5 5 5-5'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 16px center; padding-right:40px; }
+select option { background:#3D0C11; color:var(--wine-cream); }
+input::placeholder,textarea::placeholder { color:rgba(249,243,232,.3); }
+input:focus,textarea:focus,select:focus { border-color:var(--wine-gold); background:rgba(249,243,232,.13); }
+.field-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.wine-type-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:10px; }
+.wine-type-btn { background:rgba(249,243,232,.06); border:1.5px solid rgba(201,168,76,.25); border-radius:10px; padding:16px 6px; cursor:pointer; text-align:center; transition:all .25s; color:rgba(249,243,232,.75); font-family:'Jost',sans-serif; font-size:14px; font-weight:400; letter-spacing:1px; }
+.wine-type-btn:hover { border-color:var(--wine-gold); background:rgba(201,168,76,.12); color:var(--wine-cream); }
+.wine-type-btn.selected { background:rgba(201,168,76,.22); border:2px solid var(--wine-gold); color:var(--wine-gold-light); }
+.wine-type-btn .type-emoji { font-size:28px; display:block; margin-bottom:6px; }
+.options-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+.options-grid.three-col { grid-template-columns:repeat(3,1fr); }
+.options-grid.one-col { grid-template-columns:1fr; }
+.option-btn { background:rgba(249,243,232,.06); border:1.5px solid rgba(201,168,76,.22); border-radius:10px; padding:14px; cursor:pointer; text-align:left; transition:all .25s; color:rgba(249,243,232,.85); font-family:'Jost',sans-serif; font-size:15px; font-weight:300; line-height:1.4; }
+.option-btn:hover { border-color:var(--wine-gold); background:rgba(201,168,76,.1); }
+.option-btn.selected { background:rgba(123,29,42,.55); border:2px solid var(--wine-light); color:var(--wine-cream); }
+.option-btn small { display:block; font-size:12px; color:rgba(249,243,232,.5); margin-top:4px; }
+.option-btn.selected small { color:rgba(249,243,232,.7); }
+.aroma-grid { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+.aroma-chip { background:rgba(249,243,232,.06); border:1.5px solid rgba(201,168,76,.22); border-radius:24px; padding:8px 16px; cursor:pointer; font-size:14px; font-weight:400; color:rgba(249,243,232,.8); transition:all .2s; font-family:'Jost',sans-serif; user-select:none; }
+.aroma-chip:hover { border-color:var(--wine-rose); }
+.aroma-chip.selected { background:rgba(123,29,42,.5); border:2px solid var(--wine-rose); color:var(--wine-cream); }
+.color-swatch-grid { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+.color-swatch { border-radius:8px; padding:10px 12px; cursor:pointer; font-size:12px; font-weight:400; border:2.5px solid transparent; transition:all .22s; font-family:'Jost',sans-serif; min-width:80px; }
+.color-swatch:hover { transform:scale(1.03); }
+.color-swatch.selected { border-color:#fff!important; transform:scale(1.07); box-shadow:0 0 14px rgba(255,255,255,.3); }
+.rating-stars { display:flex; gap:12px; justify-content:center; margin:14px 0; }
+.star-btn { font-size:36px; cursor:pointer; transition:transform .15s; filter:grayscale(1) opacity(.35); background:none; border:none; line-height:1; }
+.star-btn:hover { transform:scale(1.2); }
+.star-btn.lit { filter:none; }
+.btn-primary { width:100%; background:var(--wine-gold); border:none; border-radius:10px; padding:16px 20px; font-family:'Jost',sans-serif; font-size:15px; font-weight:500; letter-spacing:2px; text-transform:uppercase; color:var(--wine-dark-text); cursor:pointer; transition:all .22s; margin-top:8px; }
+.btn-primary:hover { background:var(--wine-gold-light); transform:translateY(-1px); }
+.btn-primary:active { transform:translateY(0); }
+.btn-secondary { background:transparent; border:1.5px solid rgba(201,168,76,.45); border-radius:10px; padding:13px 16px; font-family:'Jost',sans-serif; font-size:13px; font-weight:400; letter-spacing:1px; text-transform:uppercase; color:var(--wine-gold); cursor:pointer; transition:all .22s; }
+.btn-secondary:hover { background:rgba(201,168,76,.12); }
+.btn-danger { background:transparent; border:1.5px solid rgba(196,72,90,.4); border-radius:8px; padding:8px 14px; font-family:'Jost',sans-serif; font-size:12px; letter-spacing:1px; text-transform:uppercase; color:var(--wine-light); cursor:pointer; transition:all .22s; }
+.btn-danger:hover { background:rgba(196,72,90,.12); }
+.section-divider { border:none; border-top:1px solid rgba(201,168,76,.18); margin:26px 0; }
+.step-nav { display:flex; gap:10px; margin-top:18px; }
+.step-nav .btn-primary { flex:2; margin-top:0; }
+.step-nav .btn-secondary { flex:1; }
+.hidden { display:none!important; }
+.summary-row { display:flex; justify-content:space-between; align-items:flex-start; padding:11px 0; border-bottom:1px solid rgba(249,243,232,.08); gap:16px; }
+.summary-row:last-child { border-bottom:none; }
+.summary-label { font-size:12px; font-weight:500; letter-spacing:1.5px; text-transform:uppercase; color:var(--wine-muted); flex-shrink:0; width:115px; }
+.summary-value { font-size:15px; font-weight:300; color:var(--wine-cream); text-align:right; line-height:1.5; }
+.export-area { background:rgba(249,243,232,.05); border:1px solid rgba(201,168,76,.2); border-radius:10px; padding:18px; font-size:13px; font-family:'Jost',sans-serif; font-weight:300; color:rgba(249,243,232,.65); white-space:pre-wrap; word-break:break-word; line-height:1.85; margin-bottom:14px; max-height:300px; overflow-y:auto; }
+textarea.notes-area { height:90px; resize:none; font-size:15px; }
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--wine-mid); border:1px solid var(--wine-gold); border-radius:10px; padding:14px 22px; font-size:14px; color:var(--wine-cream); transition:transform .3s; z-index:100; white-space:nowrap; }
+.toast.show { transform:translateX(-50%) translateY(0); }
+/* HISTÓRICO */
+.hist-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:20px; }
+.hist-stat { background:rgba(249,243,232,.07); border:1px solid rgba(201,168,76,.25); border-radius:10px; padding:14px 10px; text-align:center; }
+.hist-stat-num { font-family:'Cormorant Garamond',serif; font-size:32px; font-weight:300; color:var(--wine-gold); line-height:1; }
+.hist-stat-lbl { font-size:10px; font-weight:300; letter-spacing:1.5px; text-transform:uppercase; color:var(--wine-rose); margin-top:4px; }
+.chart-card { background:rgba(249,243,232,.07); border:1px solid rgba(201,168,76,.25); border-radius:12px; padding:20px; margin-bottom:16px; }
+.chart-title { font-family:'Cormorant Garamond',serif; font-size:18px; font-weight:400; color:var(--wine-gold); margin-bottom:16px; }
+.pie-wrap { display:flex; align-items:center; gap:20px; }
+.pie-legend { flex:1; }
+.legend-item { display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:13px; font-weight:300; color:rgba(249,243,232,.8); }
+.legend-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.bar-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.bar-label { font-size:12px; font-weight:300; color:rgba(249,243,232,.75); width:90px; flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.bar-track { flex:1; height:8px; background:rgba(255,255,255,.08); border-radius:4px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:4px; }
+.bar-val { font-size:11px; color:var(--wine-muted); width:20px; text-align:right; flex-shrink:0; }
+.hist-card { background:rgba(249,243,232,.07); border:1px solid rgba(201,168,76,.2); border-radius:12px; padding:16px; margin-bottom:12px; cursor:pointer; transition:border-color .2s; }
+.hist-card:hover { border-color:rgba(201,168,76,.5); }
+.hc-top { display:flex; justify-content:space-between; align-items:flex-start; }
+.hc-name { font-family:'Cormorant Garamond',serif; font-size:18px; color:var(--wine-cream); }
+.hc-stars { font-size:13px; }
+.hc-meta { font-size:11px; font-weight:300; color:var(--wine-muted); margin-top:3px; }
+.hc-chips { display:flex; flex-wrap:wrap; gap:4px; margin-top:10px; }
+.hc-chip { background:rgba(196,72,90,.15); border:1px solid rgba(196,72,90,.3); border-radius:12px; padding:3px 9px; font-size:10px; color:var(--wine-rose); }
+.hc-detail { margin-top:14px; border-top:1px solid rgba(201,168,76,.15); padding-top:14px; display:none; }
+.hc-detail.open { display:block; }
+.hc-actions { display:flex; justify-content:flex-end; margin-top:12px; }
+.empty-hist { text-align:center; padding:48px 20px; }
+.empty-icon { font-size:48px; margin-bottom:12px; }
+.empty-title { font-family:'Cormorant Garamond',serif; font-size:22px; color:var(--wine-gold); margin-bottom:8px; }
+.empty-sub { font-size:13px; font-weight:300; color:rgba(249,243,232,.5); line-height:1.6; }
+</style>
+</head>
+<body>
+<div id="wine-app">
+<div class="app-content">
+  <div class="app-header">
+    <img class="app-logo" src="data:image/png;base64,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" alt="Vinhos e Amigos">
+    <div class="app-title">Vinhos e Amigos</div>
+    <div class="app-subtitle">A Arte da degustação</div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" id="tab-deg" onclick="showView('deg')">Degustar</button>
+      <button class="nav-tab" id="tab-hist" onclick="showView('hist')">Histórico <span id="hist-badge"></span></button>
+    </div>
+  </div>
+
+  <div id="view-deg">
+    <div class="progress-bar" id="progress-bar"></div>
+    <div class="step-label" id="step-label"></div>
+    <div id="steps-container"></div>
+  </div>
+
+  <div id="view-hist" style="display:none">
+    <div id="hist-content"></div>
+  </div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SHEETS_URL='https://script.google.com/macros/s/AKfycbzpFM5SQI5fRkZikUt70nf-oh2if-8eMmFMP67nNY1YLGZjJmynz6IQcPhLHOJiodo/exec';
+const STEPS=['Tipo de Vinho','Identificação','Cor','Aromas (Repouso)','Aromas (Girar)','Corpo','Taninos / Textura','Açúcar','Acidez','Avaliação Final'];
+const WINE_COLORS={
+  tinto:[{label:'Rubi claro',color:'#A83050',desc:'Jovem, leve'},{label:'Rubi médio',color:'#8B1A2C',desc:'Boa maturação'},{label:'Rubi profundo',color:'#5C0F1E',desc:'Encorpado, rico'},{label:'Granada',color:'#4A0E17',desc:'Amadurecimento'},{label:'Púrpura',color:'#3D0A35',desc:'Muito jovem'},{label:'Acastanhado',color:'#7B3520',desc:'Vinho com idade'}],
+  branco:[{label:'Amarelo-palha',color:'#E8D96A',desc:'Jovem, leve'},{label:'Amarelo-dourado',color:'#D4A017',desc:'Maturado em barril'},{label:'Ouro',color:'#C9860A',desc:'Maduro, complexo'},{label:'Esverdeado',color:'#C8D87A',desc:'Muito jovem, fresco'},{label:'Âmbar',color:'#C47215',desc:'Vinho com idade'}],
+  rose:[{label:'Rosa pálido',color:'#F5C6C6',desc:'Delicado, seco'},{label:'Salmão',color:'#F0956A',desc:'Frutado, vibrante'},{label:'Rosa intenso',color:'#E05080',desc:'Expressivo'},{label:'Coral',color:'#E87A5A',desc:'Mediterrâneo'}]
+};
+const AROMAS={
+  tinto:['Frutas vermelhas','Cerejas','Amoras','Cassis','Groselha','Ameixas','Violeta','Rosa','Tabaco','Couro','Terra úmida','Baunilha','Chocolate','Café','Especiarias','Defumado','Carvalho','Menta','Alcaçuz'],
+  branco:['Maçã verde','Pera','Pêssego','Damasco','Melão','Abacaxi','Limão','Toranja','Flores brancas','Mel','Manteiga','Baunilha','Nozes','Mineral','Ervas frescas','Gengibre'],
+  rose:['Morango','Framboesa','Melancia','Pêssego branco','Peônia','Rosa','Limão','Toranja','Groselha','Hibisco','Mel']
+};
+const PHOTOS={
+  cor:'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&q=80',
+  nariz1:'https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?w=600&q=80',
+  nariz2:'https://images.unsplash.com/photo-1558346490-a72e53ae2d4f?w=600&q=80',
+  prova:'https://images.unsplash.com/photo-1474722883778-792e7990302f?w=600&q=80'
+};
+const COUNTRIES=['Argentina','Austrália','Brasil','Chile','Espanha','França','Itália','Nova Zelândia','Portugal','África do Sul','Alemanha','Estados Unidos','Uruguai','Outro'];
+const TYPE_C={tinto:'#A83050',branco:'#D4A017',rose:'#E05080'};
+const TYPE_E={tinto:'🍷',branco:'🥂',rose:'🌸'};
+
+const DEFAULT={step:0,wineType:null,wineName:'',winery:'',vintage:'',country:'',region:'',grapes:'',location:'',wineColor:null,aromas1:[],aromas2:[],body:null,tannins:null,sugar:null,acidity:null,rating:0,notes:''};
+let state=loadState();
+
+// ── STORAGE ──
+function loadState(){try{const s=localStorage.getItem('wineApp_state');if(s)return Object.assign({},DEFAULT,JSON.parse(s));}catch(e){}return Object.assign({},DEFAULT);}
+function saveState(){try{localStorage.setItem('wineApp_state',JSON.stringify(state));}catch(e){}}
+function loadHistory(){try{return JSON.parse(localStorage.getItem('wineHistory')||'[]');}catch(e){return[];}}
+function saveHistoryArr(h){try{localStorage.setItem('wineHistory',JSON.stringify(h));}catch(e){}}
+function pushHistory(entry){const h=loadHistory();h.unshift(entry);saveHistoryArr(h);updateBadge();}
+function deleteEntry(id){saveHistoryArr(loadHistory().filter(e=>e.id!==id));updateBadge();renderHistory();}
+function updateBadge(){const h=loadHistory();const b=document.getElementById('hist-badge');if(b)b.textContent=h.length?`(${h.length})`:''; }
+
+// ── VIEWS ──
+function showView(v){
+  document.getElementById('view-deg').style.display=v==='deg'?'':'none';
+  document.getElementById('view-hist').style.display=v==='hist'?'':'none';
+  document.getElementById('tab-deg').className='nav-tab'+(v==='deg'?' active':'');
+  document.getElementById('tab-hist').className='nav-tab'+(v==='hist'?' active':'');
+  if(v==='hist')renderHistory();
+}
+
+// ── HISTÓRICO RENDER ──
+function renderHistory(){
+  const c=document.getElementById('hist-content');
+  const h=loadHistory();
+  if(!h.length){
+    c.innerHTML=`<div class="empty-hist"><div class="empty-icon">🍾</div><div class="empty-title">Nenhuma degustação ainda</div><div class="empty-sub">Complete sua primeira degustação e ela aparecerá aqui com estatísticas e gráficos.</div></div>`;
+    return;
+  }
+  const total=h.length;
+  const avg=(h.reduce((s,e)=>s+(Number(e.rating)||0),0)/total).toFixed(1);
+  const ctries=[...new Set(h.map(e=>e.country).filter(Boolean))].length;
+  const tC={tinto:0,branco:0,rose:0};
+  h.forEach(e=>{if(e.wineType in tC)tC[e.wineType]++;});
+  const tE=Object.entries(tC).filter(([,v])=>v>0);
+  const cMap={};h.forEach(e=>{if(e.country)cMap[e.country]=(cMap[e.country]||0)+1;});
+  const topC=Object.entries(cMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const aMap={};h.forEach(e=>(e.aromas2||[]).forEach(a=>{aMap[a]=(aMap[a]||0)+1;}));
+  const topA=Object.entries(aMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const rD=[0,0,0,0,0];h.forEach(e=>{const r=Number(e.rating);if(r>=1&&r<=5)rD[r-1]++;});
+
+  let html=`<div class="hist-stats">
+    <div class="hist-stat"><div class="hist-stat-num">${total}</div><div class="hist-stat-lbl">Degustações</div></div>
+    <div class="hist-stat"><div class="hist-stat-num">${avg}</div><div class="hist-stat-lbl">Nota média</div></div>
+    <div class="hist-stat"><div class="hist-stat-num">${ctries}</div><div class="hist-stat-lbl">Países</div></div>
+  </div>`;
+
+  if(tE.length){
+    html+=`<div class="chart-card"><div class="chart-title">Tipos de Vinho</div><div class="pie-wrap">${buildPie(tE,total)}<div class="pie-legend">
+      ${tE.map(([t,v])=>`<div class="legend-item"><div class="legend-dot" style="background:${TYPE_C[t]}"></div>${TYPE_E[t]} ${t.charAt(0).toUpperCase()+t.slice(1)}<span style="margin-left:auto;color:var(--wine-gold);font-weight:500">${v}</span></div>`).join('')}
+    </div></div></div>`;
+  }
+  if(topC.length){
+    html+=`<div class="chart-card"><div class="chart-title">Países mais Degustados</div>
+      ${topC.map(([cn,n])=>`<div class="bar-row"><div class="bar-label">${cn}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(n/topC[0][1]*100)}%;background:var(--wine-gold)"></div></div><div class="bar-val">${n}</div></div>`).join('')}
+    </div>`;
+  }
+  if(topA.length){
+    html+=`<div class="chart-card"><div class="chart-title">Aromas mais Identificados</div>
+      ${topA.map(([a,n])=>`<div class="bar-row"><div class="bar-label">${a}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(n/topA[0][1]*100)}%;background:var(--wine-light)"></div></div><div class="bar-val">${n}</div></div>`).join('')}
+    </div>`;
+  }
+  html+=`<div class="chart-card"><div class="chart-title">Distribuição de Notas</div>
+    ${[5,4,3,2,1].map(r=>`<div class="bar-row"><div class="bar-label">${'⭐'.repeat(r)}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(rD[r-1]/total*100)}%;background:var(--wine-gold)"></div></div><div class="bar-val">${rD[r-1]}</div></div>`).join('')}
+  </div>`;
+
+  html+=`<div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--wine-gold);margin-bottom:12px">Suas Degustações</div>`;
+  html+=h.map(e=>buildCard(e)).join('');
+  c.innerHTML=html;
+}
+
+function buildPie(entries,total){
+  let a=-Math.PI/2;const r=50,cx=60,cy=60;
+  const paths=entries.map(([t,v])=>{
+    const ang=(v/total)*2*Math.PI;
+    const x1=cx+r*Math.cos(a),y1=cy+r*Math.sin(a);
+    const x2=cx+r*Math.cos(a+ang),y2=cy+r*Math.sin(a+ang);
+    const lg=ang>Math.PI?1:0;
+    const d=`M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${lg},1 ${x2},${y2} Z`;
+    a+=ang;
+    return `<path d="${d}" fill="${TYPE_C[t]}" opacity="0.85"/>`;
+  }).join('');
+  return `<svg width="120" height="120" viewBox="0 0 120 120" style="flex-shrink:0">${paths}<circle cx="${cx}" cy="${cy}" r="22" fill="#3D0C11"/></svg>`;
+}
+
+function buildCard(e){
+  const name=[e.wineName,e.winery,e.vintage].filter(Boolean).join(' — ')||'Vinho sem nome';
+  const stars='⭐'.repeat(Number(e.rating)||0)+'☆'.repeat(5-(Number(e.rating)||0));
+  const meta=[e.wineType?(TYPE_E[e.wineType]||'')+' '+e.wineType:'',e.country,e.region].filter(Boolean).join(' · ');
+  const aromas=(e.aromas2||[]).slice(0,4);
+  return `<div class="hist-card" onclick="toggleCard('hd-${e.id}')">
+    <div class="hc-top">
+      <div><div class="hc-name">${name}</div><div class="hc-meta">${meta}${e.date?' · '+e.date:''}</div></div>
+      <div class="hc-stars">${stars}</div>
+    </div>
+    ${aromas.length?`<div class="hc-chips">${aromas.map(a=>`<span class="hc-chip">${a}</span>`).join('')}${(e.aromas2||[]).length>4?`<span class="hc-chip">+${(e.aromas2.length-4)}</span>`:''}</div>`:''}
+    <div class="hc-detail" id="hd-${e.id}">
+      ${sRow('Cor',e.wineColor||'—')}${sRow('Corpo',e.body||'—')}
+      ${sRow(e.wineType==='tinto'?'Taninos':'Textura',e.tannins||'—')}
+      ${sRow('Açúcar',e.sugar||'—')}${sRow('Acidez',e.acidity||'—')}
+      ${(e.aromas1||[]).length?sRow('Aromas repouso',e.aromas1.join(', ')):''}
+      ${(e.aromas2||[]).length?sRow('Aromas girar',e.aromas2.join(', ')):''}
+      ${e.notes?sRow('Notas',e.notes):''}
+      <div class="hc-actions"><button class="btn-danger" onclick="event.stopPropagation();deleteEntry('${e.id}')">Excluir</button></div>
+    </div>
+  </div>`;
+}
+
+function toggleCard(id){const el=document.getElementById(id);if(el)el.classList.toggle('open');}
+function sRow(l,v){return `<div class="summary-row"><span class="summary-label">${l}</span><span class="summary-value">${v}</span></div>`;}
+
+// ── DEGUSTAÇÃO ──
+function getAromas(){return AROMAS[state.wineType]||AROMAS.tinto;}
+function getColors(){return WINE_COLORS[state.wineType]||WINE_COLORS.tinto;}
+function contrastColor(hex){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return(0.299*r+0.587*g+0.114*b)/255>0.55?'#1A0508':'#FFFFFF';}
+
+function updateProgress(){
+  const bar=document.getElementById('progress-bar');if(!bar)return;
+  bar.innerHTML='';
+  STEPS.forEach((_,i)=>{const d=document.createElement('div');d.className='progress-step'+(i<state.step?' done':'')+(i===state.step?' active':'');bar.appendChild(d);});
+  const lbl=document.getElementById('step-label');if(lbl)lbl.textContent=`Passo ${state.step+1} de ${STEPS.length} — ${STEPS[state.step]}`;
+}
+
+function renderSteps(scroll=true){
+  const c=document.getElementById('steps-container');if(!c)return;
+  c.innerHTML='';
+  [rS0,rS1,rS2,rS3,rS4,rS5,rS6,rS7,rS8,rS9][state.step]?.(c);
+  updateProgress();
+  if(scroll)setTimeout(()=>document.getElementById('steps-container')?.scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+
+function goNext(){if(state.step<STEPS.length-1){state.step++;saveState();renderSteps();}}
+function goPrev(){if(state.step>0){state.step--;saveState();renderSteps();}}
+function esc(v){return(v||'').replace(/"/g,'&quot;');}
+
+function rS0(c){c.innerHTML=`<div class="card"><div class="card-inner"><div class="card-number">I</div>
+  <div class="card-title">Qual é o seu vinho?</div>
+  <p class="card-description">Selecione o tipo para personalizarmos aromas e cores da sua experiência.</p>
+  <div class="wine-type-grid">
+    <button class="wine-type-btn ${state.wineType==='tinto'?'selected':''}" onclick="selectType('tinto')"><span class="type-emoji">🍷</span>Tinto</button>
+    <button class="wine-type-btn ${state.wineType==='branco'?'selected':''}" onclick="selectType('branco')"><span class="type-emoji">🥂</span>Branco</button>
+    <button class="wine-type-btn ${state.wineType==='rose'?'selected':''}" onclick="selectType('rose')"><span class="type-emoji">🌸</span>Rosé</button>
+  </div>
+  <button class="btn-primary" onclick="vS0()" style="margin-top:20px">Iniciar Degustação →</button>
+</div></div>`;}
+function selectType(t){state.wineType=t;saveState();renderSteps(false);}
+function vS0(){if(!state.wineType){showToast('Selecione o tipo de vinho');return;}goNext();}
+
+function rS1(c){c.innerHTML=`<div class="card"><div class="card-inner"><div class="card-number">II</div>
+  <div class="card-title">Identificação do Vinho</div>
+  <p class="card-description">Registre as informações do rótulo. Todos os campos são opcionais.</p>
+  <div class="field-group"><label class="field-label">Nome do Vinho</label><input type="text" placeholder="Ex: Reserva Especial" value="${esc(state.wineName)}" oninput="state.wineName=this.value;saveState()"></div>
+  <div class="field-row">
+    <div class="field-group"><label class="field-label">Vinícola</label><input type="text" placeholder="Ex: Miolo" value="${esc(state.winery)}" oninput="state.winery=this.value;saveState()"></div>
+    <div class="field-group"><label class="field-label">Safra</label><input type="number" placeholder="Ex: 2020" value="${esc(state.vintage)}" oninput="state.vintage=this.value;saveState()"></div>
+  </div>
+  <div class="field-row">
+    <div class="field-group"><label class="field-label">País</label>
+      <select onchange="state.country=this.value;saveState()"><option value="">Selecione...</option>${COUNTRIES.map(p=>`<option value="${p}" ${state.country===p?'selected':''}>${p}</option>`).join('')}</select>
+    </div>
+    <div class="field-group"><label class="field-label">Região</label><input type="text" placeholder="Ex: Vale dos Vinhedos" value="${esc(state.region)}" oninput="state.region=this.value;saveState()"></div>
+  </div>
+  <div class="field-group"><label class="field-label">Uvas</label><input type="text" placeholder="Ex: Cabernet Sauvignon" value="${esc(state.grapes)}" oninput="state.grapes=this.value;saveState()"></div>
+  <div class="field-group"><label class="field-label">Local da Degustação</label><input type="text" placeholder="Ex: Restaurante, Casa..." value="${esc(state.location)}" oninput="state.location=this.value;saveState()"></div>
+  <div class="step-nav"><button class="btn-secondary" onclick="goPrev()">← Voltar</button><button class="btn-primary" onclick="goNext()">Próximo →</button></div>
+</div></div>`;}
+
+function rS2(c){const cols=getColors(),tn={tinto:'Tinto',branco:'Branco',rose:'Rosé'}[state.wineType];
+c.innerHTML=`<div class="card"><div class="card-inner"><div class="card-number">III</div>
+  <div class="card-title">Análise Visual — A Cor</div>
+  <img class="step-photo" src="${PHOTOS.cor}" onerror="this.style.display='none'" alt="">
+  <div class="info-box"><p>Segure a taça contra superfície branca. A cor revela a <strong>idade, variedade e vinificação</strong> do vinho.</p></div>
+  <p class="card-description">Qual a cor do vinho ${tn.toLowerCase()}?</p>
+  <div class="color-swatch-grid">${cols.map(col=>`<div class="color-swatch ${state.wineColor===col.label?'selected':''}" style="background:${col.color};color:${contrastColor(col.color)};" onclick="selectColor('${col.label}')"><div style="font-weight:500;font-size:13px">${col.label}</div><div style="font-size:11px;opacity:.85;margin-top:2px">${col.desc}</div></div>`).join('')}</div>
+  <div class="step-nav"><button class="btn-secondary" onclick="goPrev()">← Voltar</button><button class="btn-primary" onclick="vS2()">Próximo →</button></div>
+</div></div>`;}
+function selectColor(l){state.wineColor=l;saveState();renderSteps(false);}
+function vS2(){if(!state.wineColor){showToast('Selecione a cor observada');return;}goNext();}
+
+function rS3(c){c.innerHTML=`<div class="card"><div class="card-inner"><div class="card-number">IV</div>
+  <div class="card-title">Primeiro Nariz — Antes de Girar</div>
+  <img class="step-photo" src="${PHOTOS.nariz1}" onerror="this.style.display='none'" alt="">
+  <div class="info-box"><p>Com a taça em repouso, inspire profundamente. Estes são os <strong>aromas primários</strong> — os mais voláteis.</p></div>
+  <p class="card-description">Você percebeu aromas antes de girar a taça?</p>
+  <div class="options-grid">
+    <button class="option-btn ${state.aromas1.includes('sim')?'selected':''}" onclick="selA1('sim')">Sim, percebi aromas<small>O vinho expressa-se bem</small></button>
+    <button class="option-btn ${state.aromas1.includes('não')?'selected':''}" onclick="selA1('não')">Não, muito discreto<small>Normal em vinhos fechados</small></button>
+  </div>
+  <div id="a1box" class="${state.aromas1.includes('sim')?'':'hidden'}">
+    <hr style="border:none;border-top:1px solid rgba(201,168,76,.18);margin:20px 0">
+    <p class="card-description" style="margin-bottom:14px">Que aromas você identificou?</p>
+    <div class="aroma-grid">${getAromas().slice(0,10).map(a=>`<span class="aroma-chip ${state.aromas1.includes(a)?'selected':''}" onclick="togA1(this,'${a}')">${a}</span>`).join('')}</div>
+  </div>
+  <div class="step-nav"><button class="btn-secondary" onclick="goPrev()">← Voltar</button><button class="btn-primary" onclick="goNext()">Próximo →</button></div>
+</div></div>`;}
+function selA1(v){state.aromas1=state.aromas1.filter(a=>a!=='sim'&&a!=='não');state.aromas1.push(v);saveState();renderSteps(false);}
+function togA1(el,a){if(state.aromas1.includes(a)){state.aromas1=state.aromas1.filter(x=>x!==a);el.classList.remove('selected');}else{state.aromas1.push(a);el.classList.add('selected');}saveState();}
+
+function rS4(c){c.innerHTML=`<div class="card"><div class="card-inner"><div class="card-number">V</div>
+  <div class="card-title">Segundo Nariz — Após Girar</div>
+  <img class="step-photo" src="${PHOTOS.nariz2}" onerror="this.style.display='none'" alt="">
+  <div class="info-box"><p>Gire a taça 3 a 5 vezes. Isso <strong>oxigena o vinho e libera os ésteres aromáticos</strong>. Os aromas serão muito mais intensos.</p></div>
+  <p class="card-description">Selecione todos os aromas que você percebeu:</p>
+  <div class="aroma-grid">${getAromas().map(a=>`<span class="aroma-chip ${state.aromas2.includes(a)?'selected':''}" onclick="togA2(this,'${a}')">${a}</span>`).join('')}</div>
+  <div class="step-nav"><button class="btn-secondary" onclick="goPrev()">← Voltar</button><button class="btn-primary" onclick="goNext()">Próximo →</button></div>
+</div></div>`;}
+function togA2(el,a){if(state.aromas2.includes(a)){state.aromas2=state.aromas2.filter(x=>x!==a);el.classList.remove('selected');}else{state.aromas2.push(a);el.classList.add('selected');}saveState();}
+
+function rS5(c){c.innerHTML=`<div class="card"><div class="card-inner"><div class="card-number">VI</div>
+  <div class="card-title">Prova — O Corpo do Vinho</div>
+  <img class="step-photo" src="${PHOTOS.prova}" onerror="this.style.display='none'" alt="">
+  <div class="info-box"><p>Dê um gole e perceba o <strong>peso e textura</strong> — influenciado pelo álcool, glicerina e extrato seco.</p></div>
+  <p class="card-description">Como você descreve o corpo?</p>
+  <div class="options-grid three-col">
+    ${[['Leve','Delicado. Baixo álcool.'],['Médio','Equilibrado.'],['Encorpado','Denso, cheio.']].map(([l,d])=>`<button class="option-btn ${state.body===l?'selected':''}" onclick="selVal('body','${l}')">${l}<small>${d}</small></button>`).join('')}
+  </div>
+  <div class="step-nav"><button class="btn-secondary" onclick="goPrev()">← Voltar</button><button class="btn-primary" onclick="valF('body')">Próximo →</button></div>
+</div></div>`;}
+
+function rS6(c){
+  const iT=state.wineType==='tinto';
+  const opcoes=iT?[['Macio e leve','Quase imperceptíveis.'],['Aveludado','Suave, sedoso.'],['Médio','Presente mas equilibrado.'],['Alto e firme','Jovem, com guarda.'],['Forte e robusto','Longa guarda.']]:[['Leve e fluido','Muito suave.'],['Fresco e vivo','Boa acidez.'],['Cremoso','Textura rica.'],['Mineral','Sensação pedregosa.'],['Untuoso','Denso, oleoso.']];
+  c.innerHTML=`<div class="card"><div class="card-inner"><div class="card-number">VII</div>
+  <div class="card-title">${iT?'Os Taninos':'Textura na Boca'}</div>
+  <div class="info-box"><p>${iT?'Os <strong>taninos</strong> provocam <strong>adstringência</strong> — secura na boca. Essenciais para a estrutura dos vinhos tintos.':'Vinhos brancos e rosés não têm taninos expressivos. Avalie a <strong>textura e sensação</strong> na boca — cremosidade, frescor e fluidez.'}</p></div>
+  <p class="card-description">${iT?'Como você percebe os taninos?':'Como você descreve a textura?'}</p>
+  <div class="options-grid one-col">${opcoes.map(([l,d])=>`<button class="option-btn ${state.tannins===l?'selected':''}" onclick="selVal('tannins','${l}')">${l}<small>${d}</small></button>`).join('')}</div>
+  <div class="step-nav"><button class="btn-secondary" onclick="goPrev()">← Voltar</button><button class="btn-primary" onclick="valF('tannins')">Próximo →</button></div>
+</div></div>`;}
+
+function rS7(c){c.innerHTML=`<div class="card"><div class="card-inner"><div class="card-number">VIII</div>
+  <div class="card-title">Açúcar Residual</div>
+  <div class="info-box"><p>Identifique pela <strong>doçura na ponta da língua</strong> no primeiro contato.</p></div>
+  <p class="card-description">Como você classifica o açúcar?</p>
+  <div class="options-grid three-col">
+    ${[['Seco','Menos de 4 g/L.'],['Meio-seco','4–25 g/L.'],['Suave','Acima de 25 g/L.']].map(([l,d])=>`<button class="option-btn ${state.sugar===l?'selected':''}" onclick="selVal('sugar','${l}')">${l}<small>${d}</small></button>`).join('')}
+  </div>
+  <div class="step-nav"><button class="btn-secondary" onclick="goPrev()">← Voltar</button><button class="btn-primary" onclick="valF('sugar')">Próximo →</button></div>
+</div></div>`;}
+
+function rS8(c){c.innerHTML=`<div class="card"><div class="card-inner"><div class="card-number">IX</div>
+  <div class="card-title">A Acidez</div>
+  <div class="info-box"><p>Identifique pela <strong>salivação excessiva</strong> e frescor nos lados da língua.</p></div>
+  <p class="card-description">Como você percebe a acidez?</p>
+  <div class="options-grid three-col">
+    ${[['Baixa','Pouca salivação.'],['Média','Frescor agradável.'],['Alta','Muita salivação.']].map(([l,d])=>`<button class="option-btn ${state.acidity===l?'selected':''}" onclick="selVal('acidity','${l}')">${l}<small>${d}</small></button>`).join('')}
+  </div>
+  <div class="step-nav"><button class="btn-secondary" onclick="goPrev()">← Voltar</button><button class="btn-primary" onclick="valF('acidity')">Próximo →</button></div>
+</div></div>`;}
+
+function rS9(c){
+  const af=state.aromas1.filter(a=>a!=='sim'&&a!=='não');
+  const lbls=['','Desapontante','Simples','Agradável','Muito bom','Excepcional'];
+  c.innerHTML=`<div class="card"><div class="card-inner"><div class="card-number">X</div>
+  <div class="card-title">Avaliação Final</div>
+  <p class="card-description">Sua impressão geral sobre este vinho:</p>
+  <div class="rating-stars">${[1,2,3,4,5].map(n=>`<button class="star-btn ${state.rating>=n?'lit':''}" onclick="setRating(${n})">⭐</button>`).join('')}</div>
+  <p style="text-align:center;font-size:14px;color:var(--wine-rose);letter-spacing:1px;margin-bottom:22px;font-style:italic">${lbls[state.rating]||'Toque uma estrela para avaliar'}</p>
+  <div class="field-group"><label class="field-label">Notas Pessoais</label>
+    <textarea class="notes-area" placeholder="Impressões, harmonização sugerida..." oninput="state.notes=this.value;saveState()">${state.notes}</textarea>
+  </div>
+  <hr style="border:none;border-top:1px solid rgba(201,168,76,.18);margin:22px 0">
+  <p style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:var(--wine-gold);margin-bottom:16px">Resumo</p>
+  ${state.wineName?sRow('Vinho',state.wineName):''}${state.winery?sRow('Vinícola',state.winery):''}${state.vintage?sRow('Safra',state.vintage):''}
+  ${state.country?sRow('País',state.country):''}${state.region?sRow('Região',state.region):''}${state.grapes?sRow('Uvas',state.grapes):''}
+  ${sRow('Tipo',(state.wineType||'').charAt(0).toUpperCase()+(state.wineType||'').slice(1))}
+  ${sRow('Cor',state.wineColor||'—')}${sRow('Aromas repouso',af.join(', ')||(state.aromas1.includes('não')?'Discreto':'—'))}
+  ${sRow('Aromas girar',state.aromas2.join(', ')||'—')}${sRow('Corpo',state.body||'—')}
+  ${sRow(state.wineType==='tinto'?'Taninos':'Textura',state.tannins||'—')}${sRow('Açúcar',state.sugar||'—')}${sRow('Acidez',state.acidity||'—')}
+  <div class="step-nav"><button class="btn-secondary" onclick="goPrev()">← Voltar</button><button class="btn-primary" onclick="finalize()">Salvar Degustação ✓</button></div>
+</div></div>`;}
+
+function selVal(f,v){state[f]=v;saveState();renderSteps(false);}
+function valF(f){if(!state[f]){showToast('Por favor, selecione uma opção');return;}goNext();}
+function setRating(n){state.rating=n;saveState();renderSteps(false);}
+
+function finalize(){
+  if(!state.rating){showToast('Atribua uma nota ao vinho');return;}
+  const date=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+  const af=state.aromas1.filter(a=>a!=='sim'&&a!=='não');
+  const tL=state.wineType==='tinto'?'Taninos':'Textura';
+
+  // Salva no histórico local
+  pushHistory({
+    id:Date.now().toString(), date,
+    wineType:state.wineType, wineName:state.wineName, winery:state.winery, vintage:state.vintage,
+    country:state.country, region:state.region, grapes:state.grapes, location:state.location,
+    wineColor:state.wineColor, aromas1:af, aromas2:[...state.aromas2],
+    body:state.body, tannins:state.tannins, sugar:state.sugar, acidity:state.acidity,
+    rating:state.rating, notes:state.notes
+  });
+
+  // Salva na planilha
+  const payload={data:date,vinho:state.wineName||'—',vinicola:state.winery||'—',safra:state.vintage||'—',pais:state.country||'—',regiao:state.region||'—',uvas:state.grapes||'—',local:state.location||'—',tipo:state.wineType||'—',cor:state.wineColor||'—',aromasRepouso:af.join(', ')||(state.aromas1.includes('não')?'Discreto':'—'),aromasGirar:state.aromas2.join(', ')||'—',corpo:state.body||'—',[tL.toLowerCase()]:state.tannins||'—',acucar:state.sugar||'—',acidez:state.acidity||'—',nota:String(state.rating),notas:state.notes||'—'};
+  fetch(SHEETS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).catch(()=>{});
+
+  showFinal(af,date);
+}
+
+function showFinal(af,date){
+  state.step=STEPS.length;saveState();
+  document.getElementById('step-label').textContent='Degustação Concluída!';
+  document.querySelectorAll('.progress-step').forEach(el=>el.classList.add('done'));
+  const wl=state.wineName||(state.wineType?state.wineType.charAt(0).toUpperCase()+state.wineType.slice(1):'Vinho');
+  const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent),hasShare=!!navigator.share;
+  const tL=state.wineType==='tinto'?'Taninos':'Textura';
+  const report=['═══════════════════════════════','     FICHA DE DEGUSTAÇÃO','       Vinhos e Amigos','═══════════════════════════════',`Data: ${date}`,'',...([state.wineName?`Nome: ${state.wineName}`:'',state.winery?`Vinícola: ${state.winery}`:'',state.vintage?`Safra: ${state.vintage}`:'',state.country?`País: ${state.country}`:'',state.region?`Região: ${state.region}`:'',state.grapes?`Uvas: ${state.grapes}`:'',state.location?`Local: ${state.location}`:''].filter(Boolean).length?['── IDENTIFICAÇÃO ──',...[state.wineName?`Nome: ${state.wineName}`:'',state.winery?`Vinícola: ${state.winery}`:'',state.vintage?`Safra: ${state.vintage}`:'',state.country?`País: ${state.country}`:'',state.region?`Região: ${state.region}`:'',state.grapes?`Uvas: ${state.grapes}`:'',state.location?`Local: ${state.location}`:''].filter(Boolean),'']:[]),'── ANÁLISE SENSORIAL ──',`Tipo: ${state.wineType}`,`Cor: ${state.wineColor||'—'}`,`Aromas (repouso): ${af.join(', ')||(state.aromas1.includes('não')?'Discreto':'—')}`,`Aromas (girar): ${state.aromas2.join(', ')||'—'}`,`Corpo: ${state.body||'—'}`,`${tL}: ${state.tannins||'—'}`,`Açúcar: ${state.sugar||'—'}`,`Acidez: ${state.acidity||'—'}`,'',`Avaliação: ${'⭐'.repeat(state.rating)} (${state.rating}/5)`,state.notes?`Notas: ${state.notes}`:'','═══════════════════════════════'].filter(l=>l!==null).join('\n');
+
+  document.getElementById('steps-container').innerHTML=`
+    <div class="card" style="text-align:center;padding:32px 20px">
+      <span style="font-size:60px;display:block;margin-bottom:14px">🏆</span>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;color:var(--wine-gold);letter-spacing:2px;margin-bottom:8px">Degustação Completa</div>
+      <div style="font-size:13px;font-weight:300;color:var(--wine-rose);letter-spacing:3px;text-transform:uppercase">Salva no histórico</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:4px">Ficha de Degustação</div>
+      <p style="font-size:14px;font-weight:300;color:rgba(249,243,232,.5);margin-bottom:16px">${wl}</p>
+      <div class="export-area" id="report-text">${report}</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px">
+        <button class="btn-primary" style="margin-top:0" onclick="saveOrShare()">${isMobile&&hasShare?'📤 Compartilhar Ficha':'⬇ Baixar Ficha (.txt)'}</button>
+        <div style="display:flex;gap:10px">
+          <button class="btn-secondary" style="flex:1" onclick="copyReport(this)">Copiar texto</button>
+          <button class="btn-secondary" style="flex:1" onclick="showView('hist')">Ver Histórico</button>
+        </div>
+        <button class="btn-secondary" onclick="newTasting()">Nova degustação</button>
+      </div>
+    </div>`;
+}
+
+function saveOrShare(){
+  const text=document.getElementById('report-text').textContent;
+  const wl=state.wineName||(state.wineType?state.wineType.charAt(0).toUpperCase()+state.wineType.slice(1):'Vinho');
+  if(navigator.share){navigator.share({title:`Ficha — ${wl}`,text}).catch(()=>{});}
+  else{const b=new Blob([text],{type:'text/plain;charset=utf-8'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=`degustacao_${wl.replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.txt`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove();},1000);showToast('Download iniciado!');}
+}
+function copyReport(btn){navigator.clipboard.writeText(document.getElementById('report-text').textContent).then(()=>{btn.textContent='Copiado!';setTimeout(()=>btn.textContent='Copiar texto',2000);}).catch(()=>showToast('Selecione o texto e copie manualmente'));}
+function newTasting(){localStorage.removeItem('wineApp_state');Object.assign(state,DEFAULT);renderSteps();}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
+
+updateBadge();
+renderSteps(false);
+</script>
+</body>
+</html>
